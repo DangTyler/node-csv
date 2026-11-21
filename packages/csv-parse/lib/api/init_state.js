@@ -94,6 +94,7 @@ const init_state = function (options) {
     stop: false,
     rawBuffer: new ResizeableBuffer(100),
     record: [],
+    recordHasContent: false,
     recordHasError: false,
     record_length: 0,
     recordDelimiterMaxLength:
