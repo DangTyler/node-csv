@@ -158,4 +158,66 @@ describe("Option `from_line`", function () {
       },
     );
   });
+
+  it("ignores comment lines when determining `from_line`", function (next) {
+    parse(
+      [
+        "// first comment",
+        "// second comment",
+        "thing1=value1",
+        "thing2=value2",
+        "header1,header2,header3",
+        "value,value,value",
+      ].join("\n"),
+      { comment: "//", from_line: 3, columns: true },
+      (err, records) => {
+        if (err) return next(err);
+        records.should.eql([
+          { header1: "value", header2: "value", header3: "value" },
+        ]);
+        next();
+      },
+    );
+  });
+
+  it("counts inline comment lines when determining `from_line`", function (next) {
+    parse(
+      "skip,// inline\nskip2\nh1,h2\nv1,v2\n",
+      { comment: "//", from_line: 3, columns: true },
+      (err, records) => {
+        if (err) return next(err);
+        records.should.eql([{ h1: "v1", h2: "v2" }]);
+        next();
+      },
+    );
+  });
+
+  it("resumes parsing after an inline comment at `from_line`", function (next) {
+    parse(
+      "// full\nskip1\nskip2,// inline\nh1,h2\nv1,v2\n",
+      { comment: "//", from_line: 3, columns: true },
+      (err, records) => {
+        if (err) return next(err);
+        records.should.eql([{ h1: "v1", h2: "v2" }]);
+        next();
+      },
+    );
+  });
+
+  it("resumes after an inline comment at `from_line` with `skip_empty_lines`", function (next) {
+    parse(
+      "skip,// inline\nskip2\nh1,h2\nv1,v2\n",
+      {
+        comment: "//",
+        from_line: 3,
+        columns: true,
+        skip_empty_lines: true,
+      },
+      (err, records) => {
+        if (err) return next(err);
+        records.should.eql([{ h1: "v1", h2: "v2" }]);
+        next();
+      },
+    );
+  });
 });
